@@ -5,6 +5,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.namasake.mkahawa.business.domain.model.Restaurant
 import com.namasake.mkahawa.business.domain.state.DataState
 import com.namasake.mkahawa.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,11 +25,17 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             recyclerView.apply {
                 adapter = restaurantAdapter
-                layoutManager = LinearLayoutManager(this@MainActivity)
-                viewModel.dataState.observe(this@MainActivity){ result ->
-                    progressBar.isVisible = result is DataState.Loading
-                    tvError.isVisible = result is DataState.Error
+                layoutManager = LinearLayoutManager(this@MainActivity) }
 
+            viewModel.dataState.observe(this@MainActivity){ dataState ->
+                when(dataState){
+                    is DataState.Success<List<Restaurant>> ->{
+                        restaurantAdapter.submitList(dataState.data)
+                        progressBar.isVisible = false
+                    }
+                    is DataState.Loading  -> progressBar.isVisible = true
+
+                    is DataState.Error -> tvError.text = dataState.exception.message
                 }
 
             }
